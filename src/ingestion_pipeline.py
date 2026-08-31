@@ -10,6 +10,12 @@ load_dotenv()
 def main():
     docs = load_documents("docs")
 
+    chunks = split_documents(docs, 800, 0)
+    embeddingModel = OpenAIEmbeddings(model="text-embedding-3-small")
+
+    vector_store = create_vector_store(chunks, embeddingModel)
+
+
 
 
 
@@ -30,6 +36,27 @@ def load_documents(docs_path):
 
     return documents
 
+
+def split_documents(documents, chunk_size,chunk_overlap=0):
+    text_splitter = CharacterTextSplitter(
+        chunk_size = chunk_size,
+        chunk_overlap = chunk_overlap
+    )
+
+    chunks = text_splitter.split_documents(documents)
+
+    return chunks
+
+def create_vector_store(chunks, embeddingModel, persist_directory = "db/chroma_db"):
+
+    vectorStore = Chroma.from_documents(
+        documents = chunks,
+        embedding = embeddingModel,
+        persist_directory = persist_directory,
+        collection_metadata ={"hnsw:space":"cosine"}
+    )
+
+    return vectorStore
 
 
 
